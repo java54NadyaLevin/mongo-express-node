@@ -14,14 +14,20 @@ export default class MflixService {
         this.#connection.closeConnection();
     }
     async addComment(commentDto) {
-        
-        const commentDB = this.#toComment(commentDto);
+        const commentDB = this.#toComment(commentDto, 'movie_id');
         const result = await this.#commentsCollection.insertOne(commentDB);
         commentDB._id = result.insertedId;
         return commentDB;
     }
-    #toComment(commentDto) {
-        const movieId = ObjectId.createFromHexString(commentDto.movie_id);
-        return {...commentDto,'movie_id': movieId}
+    async updateComment(commentDto) {
+        const commentDB = this.#toComment(commentDto, 'comment_id');
+        const result = await this.#commentsCollection.findOneAndUpdate({_id: commentDB.comment_id}, {$set: commentDto}, {returnDocument: 'after'});
+        commentDB.text = result.text;
+        return commentDB;
     }
+    #toComment(commentDto, idToString) {
+        const idString = ObjectId.createFromHexString(commentDto[idToString]);
+        return {...commentDto, [idToString]: idString}
+    }
+
 }
