@@ -25,6 +25,18 @@ export default class MflixService {
         commentDB.text = result.text;
         return commentDB;
     }
+    async deleteComment(commentDto) {
+        const commentDB = this.#toComment(commentDto, 'id');
+        await this.#commentsCollection.deleteOne({_id: commentDB.id});
+        return commentDB;
+    }
+
+    async getComment(commentDto) {
+        let commentDB = this.#toComment(commentDto, 'id');
+        const result = await this.#commentsCollection.findOne({_id: commentDB.id});
+        return result;
+    }
+
     #toComment(commentDto, idToString) {
         const idString = ObjectId.createFromHexString(commentDto[idToString]);
         return {...commentDto, [idToString]: idString}
