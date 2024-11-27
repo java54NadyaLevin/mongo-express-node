@@ -2,8 +2,8 @@ import express from 'express';
 import MflixService from './service/MflixService.mjs'
 const app = express();
 const port = process.env.PORT || 3500;
-const mflixService = new MflixService(process.env.MONGO_URI, "sample_mflix",
-    "movies", "comments")
+const mflixService = new MflixService(process.env.MONGO_URI, process.env.DB_NAME,
+    process.env.MOVIES_COLLECTION, process.env.COMMENTS_COLLECTION)
 const server = app.listen(port);
 server.on("listening", ()=>console.log(`server listening on port ${server.address().port}`));
 app.use(express.json());
@@ -22,13 +22,14 @@ app.get("/mflix/comments/:id", async (req, res) => {
     
 })
 app.post("/mflix/movies/rated", async (req, res) => {
-    //TODO find most imdb rated movies
-   // req.body {"year":<number>(optional), "genre":<string>(optional),
-   // "actor":<string-regex>(optional), "amount":<number>(mandatory)}
-   
+    if(!req.body.amount){
+        res.status(400).end('No amount value provided');
+    }else{
+    await requestHandler(req, res, 'getRating', 'body')
+}; 
 })
 async function requestHandler(req, res, operation, path){
-    const commentDB = await mflixService[operation](req[path]);
-    res.status(201).end(JSON.stringify(commentDB));
+    const result = await mflixService[operation](req[path]);
+    res.status(201).end(JSON.stringify(result));
 }
 
